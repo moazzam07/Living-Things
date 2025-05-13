@@ -41,6 +41,33 @@ living-things/
 - npm or yarn
 - MySQL (Database)
 
+## Screenshots
+
+### Authentication
+![Login Page](./frontend/public/assets/LoginPage.png)
+*Login page with secure authentication*
+
+![Register Page](./frontend/public/assets/RegisterPage.png)
+*Register page*
+
+### Dashboard
+![Dashboard](./frontend/public/assets/LandingPage.png)
+*Main dashboard showing task list and management options*
+
+### Task Management
+![Add Task](./frontend/public/assets/CreateTask.png)
+*Add new task modal*
+
+![View All Tasks](./frontend/public/assets/ViewTasks.png)
+*View all tasks*
+
+![View Task](./frontend/public/assets/ViewTaskDetails.png)
+*View task details modal*
+
+![Edit Task](./frontend/public/assets/EditTaskDetails.png)
+*Edit task modal*
+
+
 ## Backend Setup
 
 1. Navigate to the backend directory:

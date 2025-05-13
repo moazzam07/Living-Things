@@ -21,7 +21,7 @@ const Login = () => {
       password: password
     })
       .then((res) => {
-        console.log(res.data);
+        console.log(res);
         login(user, res.data.access, res.data.refresh)
         navigate('/')  
       })

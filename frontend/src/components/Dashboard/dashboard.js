@@ -88,7 +88,6 @@ const Dashboard = () => {
       },
     })
     .then((res) => {
-      console.log(res.data);
       setTasks(res.data);
     })
     .catch((err) => {

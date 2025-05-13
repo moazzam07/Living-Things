@@ -284,3 +284,11 @@
   .save-btn:hover {
     background-color: #2563eb;
   }
+
+  .empty-msg {
+    font-size: 1.5rem;
+    color: #666;
+    text-align: center;
+    width: 100%;
+    margin: 0;
+  }
