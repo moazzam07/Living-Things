@@ -1,6 +1,25 @@
-# Living Things
+# Living Things - Task Management System
 
-A full-stack web application built with Django and React.
+A full-stack web application built with Django and React for managing tasks with import/export capabilities.
+
+## Features
+
+- **Task Management**
+  - Create new tasks
+  - View task details
+  - Update existing tasks
+  - Delete tasks
+  - List all tasks
+
+- **Data Import/Export**
+  - Export all tasks to Excel/CSV format
+  - Import tasks from Excel/CSV files
+  - Bulk task management
+
+- **User Features**
+  - User-specific task lists
+  - Secure authentication
+  - Personal task management
 
 ## Project Structure
 
@@ -8,7 +27,7 @@ A full-stack web application built with Django and React.
 living-things/
 ├── backend/         # Django backend
 │   ├── living_things/  # Django project settings
-│   ├── tasks/      # Django apps
+│   ├── tasks/      # Task management app
 │   └── requirements.txt
 └── frontend/       # React frontend
     ├── src/        # React source code
@@ -20,7 +39,7 @@ living-things/
 - Python 3.8 or higher
 - Node.js 14 or higher
 - npm or yarn
-- MySQL
+- MySQL (Database)
 
 ## Backend Setup
 
@@ -40,12 +59,14 @@ living-things/
    pip install -r requirements.txt
    ```
 
-4. Run migrations:
+4. Configure database settings in `living_things/settings.py`
+
+5. Run migrations:
    ```bash
    python manage.py migrate
    ```
 
-5. Start the development server:
+6. Start the development server:
    ```bash
    python manage.py runserver
    ```
@@ -74,6 +95,18 @@ The backend server will run on http://localhost:8000
    ```
 
 The frontend development server will run on http://localhost:3000
+
+## API Endpoints
+
+### Task Management
+- `GET /api/tasks` - List all tasks
+- `POST /api/tasks` - Create a new task
+- `GET /api/tasks/{id}` - Get task details
+- `PUT /api/tasks/{id}` - Update a task
+- `DELETE /api/tasks/{id}` - Delete a task
+
+### Import/Export
+- `POST /api/tasks/import` - Import tasks from Excel/CSV
 
 ## Development
 
