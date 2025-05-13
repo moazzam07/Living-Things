@@ -21,24 +21,27 @@ const Tasks = ({ task, onTaskDelete, refresh_access_token, fetchTasks }) => {
     }))
   }
 
+  const EditTask = () => {
+    axios.patch(`${BASE_URL}/tasks/${task.id}`, editedTask, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+        }
+      })
+      .then(() => {
+          fetchTasks();
+      })
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          refresh_access_token();
+          EditTask();
+        }
+        alert(err.response?.data?.detail || "Failed to update task");
+      })
+  } 
+
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    
-    axios.patch(`${BASE_URL}/tasks/${task.id}`, editedTask, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`
-      }
-    })
-    .then(() => {
-        fetchTasks();
-    })
-    .catch((err) => {
-      if (err.response?.status === 401) {
-        alert(err.response?.data?.detail);
-        refresh_access_token();
-      }
-      alert(err.response?.data?.detail || "Failed to update task");
-    })
+    EditTask();
     setEditModal(false);
   }
   

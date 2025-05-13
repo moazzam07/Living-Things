@@ -65,6 +65,8 @@ class TaskDetailView(APIView):
     def patch(self, request, id):
         task = self.get_task(request.user, id)
         serializer = TaskSerializer(task, data=request.data, partial=True)
+        if not validate_due_date(request.data.get('due_date')):
+            return Response({'detail': 'Due Date cannot be less than todays date'}, status=400)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

@@ -23,5 +23,5 @@ def import_tasks_from_excel(file, user):
     return df.shape[0]
 
 def validate_due_date(due_date):
-    date = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
-    return date >= datetime.now()
+    date = datetime.fromisoformat(due_date.replace("Z", "+00:00")).date()
+    return date >= datetime.now().date()

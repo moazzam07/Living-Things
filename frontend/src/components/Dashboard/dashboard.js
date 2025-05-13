@@ -43,12 +43,7 @@ const Dashboard = () => {
     fetchTasks();
   }, []);
 
-  function handleSave() {
-    if (!title.trim()) {
-      alert("Title is required");
-      return;
-    }
-
+  const saveTask = () => {
     axios.post(`${BASE_URL}/tasks`, {
       title,
       description,
@@ -71,15 +66,22 @@ const Dashboard = () => {
     .catch((err) => {
       if (err.response?.status === 401) {
         refresh_access_token();
+        saveTask();
       }
       console.log(err);
       alert(err.response?.data?.detail || "Failed to create task");
     })
   }
 
+  function handleSave() {
+    if (!title.trim()) {
+      alert("Title is required");
+      return;
+    }
+    saveTask();
+  }
 
-  function onTaskDelete(id) {
-
+  const deleteTask = (id) => {
     axios.delete(`${BASE_URL}/tasks/${id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -92,17 +94,21 @@ const Dashboard = () => {
     .catch((err) => {
       if (err.response?.status === 401) {
         refresh_access_token();
+        deleteTask(id);
       }
       alert(err.response?.data?.detail || "Failed to delete task");
     })
   }
 
+  function onTaskDelete(id) {
+    deleteTask(id);
+  }
+
   function handleExport() {
-    // Prepare data for Excel
     const exportData = tasks.map(task => ({
       'title': task.title,
       'description': task.description,
-      'effort': task.effort,
+      'efforts': task.effort,
       'due_date': task.due_date
     }));
 
@@ -121,6 +127,29 @@ const Dashboard = () => {
     fileInputRef.current.click();
   }
 
+  const importTasks = (event) => {
+    axios.post(`${BASE_URL}/tasks/import`, {
+      file: event.target.result
+    }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        'Content-Type': 'multipart/form-data'
+      },
+    })
+    .then((res) => {
+      setTasks([...tasks, res.data]);
+      fetchTasks();
+      alert('Tasks imported successfully!');
+    })
+    .catch((err) => {
+      if (err.response?.status === 401) {
+        refresh_access_token();
+        importTasks(event);
+      }
+      alert(err.response?.data?.detail || "Failed to import tasks");
+    });
+  }
+
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -128,32 +157,13 @@ const Dashboard = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        axios.post(`${BASE_URL}/tasks/import`, {
-          file: event.target.result
-        }, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-            'Content-Type': 'multipart/form-data'
-          },
-        })
-        .then((res) => {
-          setTasks([...tasks, res.data]);
-          fetchTasks();
-          alert('Tasks imported successfully!');
-        })
-        .catch((err) => {
-          if (err.response?.status === 401) {
-            refresh_access_token();
-          }
-          alert(err.response?.data?.detail || "Failed to import tasks");
-        });
+        importTasks(event);
       } catch (error) {
         alert('Error reading file. Please make sure it is a valid Excel file.');
         console.error('Import error:', error);
       }
     };
-
-    reader.readAsArrayBuffer(file); // Read as ArrayBuffer for Excel files
+    reader.readAsArrayBuffer(file);
   }
 
   return (
