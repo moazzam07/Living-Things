@@ -1,16 +1,12 @@
-from datetime import datetime
-import time
-from urllib import request
-from rest_framework import generics, permissions, status
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from .models import Task
 from .serializers import RegisterSerializer, TaskSerializer
 from rest_framework.parsers import MultiPartParser
-from .utils import import_tasks_from_excel, validate_due_date
+from .utils import TaskService, import_tasks_from_excel
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.exceptions import NotFound
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
@@ -28,18 +24,12 @@ class TaskListCreateView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
-        try: 
-            tasks = Task.objects.filter(user=request.user)
-            serializer = TaskSerializer(tasks, many=True)
-            return Response(serializer.data)
-        except:
-            return Response({'detail': "No Task found"})
+        tasks = TaskService.get_tasks_for_user(request.user)
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            raise PermissionDenied("Send request again to continue.")
-
-        if not validate_due_date(request.data.get('due_date')):
+        if not TaskService.validate_due_date(request.data.get('due_date')):
             return Response({'detail': 'Due Date cannot be less than todays date'}, status=400)
         
         serializer = TaskSerializer(data=request.data)
@@ -51,32 +41,35 @@ class TaskListCreateView(APIView):
 
 class TaskDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    def get_task(self, user, id):
-        try:
-            return Task.objects.get(user=user, id=id)
-        except Task.DoesNotExist:
-            raise NotFound("Task not found.")
 
     def get(self, request, id):    
-        task = self.get_task(request.user, id)
+        task = TaskService.get_user_task(request.user, id)
+        if not task:
+            raise NotFound("Task not found.")
         serializer = TaskSerializer(task)
         return Response(serializer.data)
         
     def patch(self, request, id):
-        task = self.get_task(request.user, id)
+        task = TaskService.get_user_task(request.user, id)
+        if not task:
+            raise NotFound("Task not found.")
+
+        if 'due_date' in request.data and not TaskService.validate_due_date(request.data.get('due_date')):
+            return Response({'detail': 'Due Date cannot be less than today\'s date'}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = TaskSerializer(task, data=request.data, partial=True)
-        if not validate_due_date(request.data.get('due_date')):
-            return Response({'detail': 'Due Date cannot be less than todays date'}, status=400)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     def delete(self, request, id):
-        task = Task.objects.get(id=id, user=request.user)
-        task.delete()
+        task = TaskService.get_user_task(request.user, id)
+        if not task:
+            raise NotFound("Task not found.")
 
-        tasks = Task.objects.filter(user=request.user)
+        TaskService.delete_task(task)
+
+        tasks = TaskService.get_tasks_for_user(request.user)
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
@@ -90,6 +83,6 @@ class ImportTasksView(APIView):
             try:
                 success = import_tasks_from_excel(file, request.user)
                 return Response({'imported': success}, status=200)
-            except AttributeError as e:
+            except Exception as e:
                 return Response({'error': str(e)}, status=400)
         return Response({'error': 'No file uploaded'}, status=400)

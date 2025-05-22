@@ -145,7 +145,7 @@ const Dashboard = () => {
         refresh_access_token();
         importTasks(event);
       }
-      alert(err.response?.data?.detail || "Failed to import tasks");
+      alert(err.response?.data?.error || "Failed to import tasks");
     });
   }
 
