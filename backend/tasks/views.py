@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from .serializers import RegisterSerializer, TaskSerializer
 from rest_framework.parsers import MultiPartParser
-from .utils import TaskService, import_tasks_from_excel
+from .utils import TaskService, TaskImport
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
 
@@ -24,7 +24,8 @@ class TaskListCreateView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
-        tasks = TaskService.get_tasks_for_user(request.user)
+        taskService = TaskService(request.user)
+        tasks = taskService.get_tasks_for_user()
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
@@ -43,14 +44,16 @@ class TaskDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, id):    
-        task = TaskService.get_user_task(request.user, id)
+        taskService = TaskService(request.user)
+        task = taskService.get_user_task(id)
         if not task:
             raise NotFound("Task not found.")
         serializer = TaskSerializer(task)
         return Response(serializer.data)
         
     def patch(self, request, id):
-        task = TaskService.get_user_task(request.user, id)
+        taskService = TaskService(request.user)
+        task = taskService.get_user_task(id)
         if not task:
             raise NotFound("Task not found.")
 
@@ -63,13 +66,15 @@ class TaskDetailView(APIView):
         return Response(serializer.data)
 
     def delete(self, request, id):
-        task = TaskService.get_user_task(request.user, id)
+        taskService = TaskService(request.user)
+
+        task = taskService.get_user_task(id)
         if not task:
             raise NotFound("Task not found.")
 
-        TaskService.delete_task(task)
+        taskService.delete_task(task)
 
-        tasks = TaskService.get_tasks_for_user(request.user)
+        tasks = taskService.get_tasks_for_user()
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
@@ -81,7 +86,8 @@ class ImportTasksView(APIView):
         file = request.FILES.get('file')
         if file:
             try:
-                success = import_tasks_from_excel(file, request.user)
+                taskImport = TaskImport(request.user)
+                success = taskImport.import_tasks_from_excel(file)
                 return Response({'imported': success}, status=200)
             except Exception as e:
                 return Response({'error': str(e)}, status=400)
