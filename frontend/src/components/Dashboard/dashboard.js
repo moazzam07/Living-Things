@@ -20,6 +20,7 @@ const Dashboard = () => {
   const fileInputRef = useRef(null);
 
   const fetchTasks = () => {
+    refresh_access_token();
     axios
       .get(`${BASE_URL}/tasks`, {
         headers: {
@@ -30,12 +31,7 @@ const Dashboard = () => {
         setTasks(res.data);
       })
       .catch((err) => {
-        if (err.response?.status === 401) {
-          refresh_access_token();
-          fetchTasks();
-        } else {
-          alert(err.response?.data?.detail || "Failed to fetch tasks");
-        }
+        alert(err.response?.data?.detail || "Failed to fetch tasks");
       });
   };
 
@@ -44,6 +40,7 @@ const Dashboard = () => {
   }, []);
 
   const saveTask = () => {
+    refresh_access_token();
     axios.post(`${BASE_URL}/tasks`, {
       title,
       description,
@@ -64,11 +61,6 @@ const Dashboard = () => {
 
     })  
     .catch((err) => {
-      if (err.response?.status === 401) {
-        refresh_access_token();
-        saveTask();
-      }
-      console.log(err);
       alert(err.response?.data?.detail || "Failed to create task");
     })
   }
@@ -82,6 +74,7 @@ const Dashboard = () => {
   }
 
   const deleteTask = (id) => {
+    refresh_access_token();
     axios.delete(`${BASE_URL}/tasks/${id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -91,10 +84,6 @@ const Dashboard = () => {
       setTasks(res.data);
     })
     .catch((err) => {
-      if (err.response?.status === 401) {
-        refresh_access_token();
-        deleteTask(id);
-      }
       alert(err.response?.data?.detail || "Failed to delete task");
     })
   }
@@ -127,6 +116,7 @@ const Dashboard = () => {
   }
 
   const importTasks = (event) => {
+    refresh_access_token();
     axios.post(`${BASE_URL}/tasks/import`, {
       file: event.target.result
     }, {
@@ -141,10 +131,6 @@ const Dashboard = () => {
       alert('Tasks imported successfully!');
     })
     .catch((err) => {
-      if (err.response?.status === 401) {
-        refresh_access_token();
-        importTasks(event);
-      }
       alert(err.response?.data?.error || "Failed to import tasks");
     });
   }
