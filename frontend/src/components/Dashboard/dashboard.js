@@ -117,38 +117,34 @@ const Dashboard = () => {
 
   const importTasks = (event) => {
     refresh_access_token();
-    axios.post(`${BASE_URL}/tasks/import`, {
-      file: event.target.result
-    }, {
+    const formData = new FormData();
+    formData.append('file', event.target.files[0]);
+    
+    axios.post(`${BASE_URL}/tasks/import`, formData, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         'Content-Type': 'multipart/form-data'
       },
     })
-    .then((res) => {
-      setTasks([...tasks, res.data]);
+    .then(() => {
       fetchTasks();
       alert('Tasks imported successfully!');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     })
     .catch((err) => {
       alert(err.response?.data?.error || "Failed to import tasks");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     });
   }
 
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        importTasks(event);
-      } catch (error) {
-        alert('Error reading file. Please make sure it is a valid Excel file.');
-        console.error('Import error:', error);
-      }
-    };
-    reader.readAsArrayBuffer(file);
+    importTasks(e);
   }
 
   return (
